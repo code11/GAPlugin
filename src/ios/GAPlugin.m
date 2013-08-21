@@ -10,11 +10,11 @@
 #import "AppDelegate.h"
 
 @implementation GAPlugin
-- (void) initGA:(NSMutableArray*)arguments withDict:(NSMutableDictionary*)options
+- (void) initGA:(CDVInvokedUrlCommand*)command
 {
-    NSString    *callbackId = [arguments pop];
-    NSString    *accountID = [arguments objectAtIndex:0];
-    NSInteger   dispatchPeriod = [[arguments objectAtIndex:1] intValue];
+	NSString    *callbackId = command.callbackId;
+	NSString    *accountID = [command.arguments objectAtIndex:0];
+	NSInteger   dispatchPeriod = [[command.arguments objectAtIndex:1] intValue];
 
     [GAI sharedInstance].trackUncaughtExceptions = YES;
     // Optional: set Google Analytics dispatch interval to e.g. 20 seconds.
@@ -30,9 +30,9 @@
     [self successWithMessage:[NSString stringWithFormat:@"initGA: accountID = %@; Interval = %d seconds",accountID, dispatchPeriod] toID:callbackId];
 }
 
--(void) exitGA: (NSMutableArray*)arguments withDict:(NSMutableDictionary*)options
+-(void) exitGA:(CDVInvokedUrlCommand*)command
 {
-    NSString    *callbackId = [arguments pop];
+    NSString *callbackId = command.callbackId;
 
     if (inited)
         [[[GAI sharedInstance] defaultTracker] close];
@@ -40,13 +40,13 @@
     [self successWithMessage:@"exitGA" toID:callbackId];
 }
 
-- (void) trackEvent:(NSMutableArray*)arguments withDict:(NSMutableDictionary*)options
+- (void) trackEvent:(CDVInvokedUrlCommand*)command
 {
-    NSString        *callbackId = [arguments pop];
-    NSString        *category = [arguments objectAtIndex:0];
-    NSString        *eventAction = [arguments objectAtIndex:1];
-    NSString        *eventLabel = [arguments objectAtIndex:2];
-    NSInteger       eventValue = [[arguments objectAtIndex:3] intValue];
+    NSString        *callbackId = command.callbackId;
+    NSString        *category = [command.arguments objectAtIndex:0];
+    NSString        *eventAction = [command.arguments objectAtIndex:1];
+    NSString        *eventLabel = [command.arguments objectAtIndex:2];
+    NSInteger       eventValue = [[command.arguments objectAtIndex:3] intValue];
     NSError         *error = nil;
    
     if (inited)
@@ -61,10 +61,10 @@
         [self failWithMessage:@"trackEvent failed - not initialized" toID:callbackId withError:nil];
 }
 
-- (void) trackPage:(NSMutableArray*)arguments withDict:(NSMutableDictionary*)options
+- (void) trackPage:(CDVInvokedUrlCommand*)command
 {
-    NSString            *callbackId = [arguments pop];
-    NSString            *pageURL = [arguments objectAtIndex:0];
+    NSString            *callbackId = command.callbackId;
+    NSString            *pageURL = [command.arguments objectAtIndex:0];
 
     if (inited)
     {
@@ -80,11 +80,11 @@
         [self failWithMessage:@"trackPage failed - not initialized" toID:callbackId withError:nil];
 }
 
-- (void) setVariable:(NSMutableArray*)arguments withDict:(NSMutableDictionary*)options
+- (void) setVariable:(CDVInvokedUrlCommand*)command
 {
-    NSString            *callbackId = [arguments pop];
-    NSInteger           index = [[arguments objectAtIndex:0] intValue];
-    NSString            *value = [arguments objectAtIndex:1];
+    NSString            *callbackId = command.callbackId;
+    NSInteger           index = [[command.arguments objectAtIndex:0] intValue];
+    NSString            *value = [command.arguments objectAtIndex:1];
     
     if (inited)
     {
@@ -103,7 +103,7 @@
 -(void)successWithMessage:(NSString *)message toID:(NSString *)callbackID
 {
     CDVPluginResult *commandResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK messageAsString:message];
-    
+
     [self writeJavascript:[commandResult toSuccessCallbackString:callbackID]];
 }
 
@@ -111,14 +111,14 @@
 {
     NSString        *errorMessage = (error) ? [NSString stringWithFormat:@"%@ - %@", message, [error localizedDescription]] : message;
     CDVPluginResult *commandResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_ERROR messageAsString:errorMessage];
-    
+
     [self writeJavascript:[commandResult toErrorCallbackString:callbackID]];
 }
 
 -(void)dealloc
 {
     [[[GAI sharedInstance] defaultTracker] close];
-    [super dealloc];
+   // [super dealloc];
 }
 
 @end
